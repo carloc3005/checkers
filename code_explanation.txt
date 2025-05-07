@@ -1,0 +1,71 @@
+This project implements a checkers game using Pygame for the graphical interface and an AI opponent that uses the minimax algorithm.
+
+**Overall Structure:**
+
+*   The game is organized into several Python files, primarily within the `checkers` and `minimax` directories.
+*   `main.py` is the entry point that initializes Pygame, sets up the game window, and runs the main game loop.
+*   The `checkers` directory contains the core game logic:
+    *   `board.py`: Manages the checkerboard, including piece placement, movement, capturing, and determining valid moves. It also has a method to evaluate the board state for the AI.
+    *   `piece.py`: Defines the `Piece` class, representing individual checkers with properties like color, position, and whether they are kings.
+    *   `game.py`: Orchestrates the game flow, handling player turns (Red vs. Purple AI), selecting pieces, processing moves, checking for a winner, and managing the game state. It also includes logic for a draw condition based on moves without a capture.
+    *   `constants.py`: Stores various constants used throughout the game, such as colors (RED, PURPLE, WHITE, BLACK, GREEN, BLUE, GREY), board dimensions (WIDTH, HEIGHT, ROWS, COLS), square size, and the image for the king's crown.
+*   The `minimax` directory contains the AI logic:
+    *   `algorithm.py`: Implements the minimax algorithm. This is used by the AI (Purple player) to decide its best move by looking ahead a few turns and evaluating potential board states. It simulates moves and chooses the one that maximizes its chances of winning (or minimizes Red's chances).
+
+**Key Functionality in Each File:**
+
+1.  **`main.py`:**
+    *   Initializes Pygame and the game window.
+    *   Contains the main game loop that handles events (mouse clicks, quitting), updates the game state, and draws the game on the screen.
+    *   Manages turns: When it's the AI's (Purple) turn, it calls the `minimax` function to get the best move and then updates the game state.
+    *   Handles player input for selecting and moving pieces.
+    *   Displays win/loss/draw messages at the end of the game.
+    *   `get_row_col_from_mouse()`: Converts mouse click coordinates to board row and column.
+
+2.  **`checkers/board.py` (`Board` class):**
+    *   `__init__()`: Initializes the board with pieces in their starting positions, and keeps track of pieces left and kings for each color.
+    *   `create_board()`: Sets up the initial arrangement of Red and Purple pieces.
+    *   `draw_squares()`: Draws the checkerboard pattern.
+    *   `draw()`: Draws the board and all the pieces on it.
+    *   `move()`: Updates the board state when a piece moves. Handles king promotion.
+    *   `get_piece()`: Returns the piece at a given row and column.
+    *   `remove()`: Removes captured pieces from the board and updates the count of remaining pieces.
+    *   `winner()`: Checks if Red or Purple has won (by eliminating all opponent pieces).
+    *   `get_valid_moves()`: Calculates all possible valid moves for a given piece, including jumps. This is a crucial part of the game logic. It uses helper methods `_traverse_left()` and `_traverse_right()` to find moves in different directions.
+    *   `evaluate()`: Provides a score for the current board state. This is used by the minimax algorithm to determine how good a position is for the AI. It's based on the difference in the number of pieces and kings.
+    *   `get_all_pieces()`: Returns a list of all pieces of a specific color currently on the board.
+
+3.  **`checkers/piece.py` (`Piece` class):**
+    *   `__init__()`: Initializes a piece with its row, column, color, and king status.
+    *   `calc_pos()`: Calculates the pixel coordinates of the piece on the screen based on its row and column.
+    *   `make_king()`: Promotes a piece to a king.
+    *   `draw()`: Draws the piece on the game window, including a crown if it's a king.
+    *   `move()`: Updates the piece's row and column and recalculates its screen position.
+
+4.  **`checkers/game.py` (`Game` class):**
+    *   `__init__()`: Initializes the game, creating a `Board` object and setting the starting turn to Red.
+    *   `update()`: Redraws the board and valid moves.
+    *   `_init()`: Resets the game to its initial state.
+    *   `winner()`: Determines the winner. It also includes a draw condition: if 40 half-moves (20 full moves by both players) occur without a capture, the game is a draw (represented by the GREY color).
+    *   `reset()`: Resets the game.
+    *   `select()`: Handles player clicks to select a piece or a destination square for a move.
+    *   `_move()`: Executes a move if it's valid, handles captures (removing skipped pieces), and updates the `moves_since_last_capture` counter.
+    *   `draw_valid_moves()`: Highlights the valid moves for the selected piece.
+    *   `change_turn()`: Switches the turn between Red and Purple and increments the `moves_since_last_capture` counter.
+    *   `get_board()`: Returns the current board object.
+    *   `ai_move()`: Applies the move chosen by the minimax algorithm to the board and resets the `moves_since_last_capture` counter if the AI makes a capture.
+
+5.  **`minimax/algorithm.py`:**
+    *   `minimax()`: The core recursive function for the AI.
+        *   It takes the current board `position`, the `depth` (how many moves to look ahead), whether it's the `max_player`'s turn (Purple, trying to maximize its score), and the `game` object.
+        *   Base cases: If `depth` is 0 or there's a winner, it returns the board's evaluation score.
+        *   If it's `max_player`'s (Purple) turn, it explores all possible moves for Purple, recursively calls `minimax` for each move (now for the minimizing player, Red), and chooses the move that leads to the highest evaluation.
+        *   If it's the minimizing player's (Red, from Purple's perspective during lookahead) turn, it explores Red's moves, recursively calls `minimax` (now for the maximizing player), and chooses the move that leads to the lowest evaluation (best for Red, worst for Purple).
+    *   `simulate_move()`: Creates a temporary board state by applying a potential move. This is used by the minimax algorithm to explore future possibilities without changing the actual game board.
+    *   `get_all_moves()`: Generates all possible board states that can result from one move by a given `color`. It iterates through all pieces of that color, gets their valid moves, and for each valid move, it creates a deep copy of the board, simulates the move, and adds the new board state to a list of `moves`.
+
+6.  **`checkers/constants.py`:**
+    *   Defines global constants for screen dimensions, board layout (rows, columns, square size), colors (RGB tuples), and loads the crown image for king pieces.
+
+7.  **`__init__.py` files:**
+    *   These are empty files that tell Python to treat the `checkers` and `minimax` directories as packages, allowing you to import modules from them using dot notation (e.g., `from checkers.board import Board`).

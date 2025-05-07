@@ -1,5 +1,5 @@
 import pygame
-from .constants import RED, WHITE, BLUE, SQUARE_SIZE, PURPLE
+from .constants import RED, WHITE, BLUE, SQUARE_SIZE, PURPLE, GREY
 from checkers.board import Board
 
 class Game:
@@ -17,14 +17,23 @@ class Game:
         self.board = Board()
         self.turn = RED
         self.valid_moves = {}
+        self.moves_since_last_capture = 0 # Counter for moves since last capture
+        self.last_piece_count = self.board.red_left + self.board.white_left 
 
     def winner(self):
+        if self.moves_since_last_capture >= 30: 
+            return GREY
         return self.board.winner()
 
     def get_board(self):
         return self.board
 
     def ai_move(self, board):
+        current_piece_count = board.red_left + board.white_left
+        if current_piece_count < self.last_piece_count:
+            self.moves_since_last_capture = 0 # Reset counter if AI captured a piece
+            self.last_piece_count = current_piece_count # Update piece count
+        
         self.board = board
         self.change_turn()
 
@@ -53,6 +62,9 @@ class Game:
             skipped = self.valid_moves[(row, col)]
             if skipped:
                 self.board.remove(skipped)
+                self.moves_since_last_capture = 0 # Reset counter if a piece is skipped (captured)
+                # Update piece count after capture
+                self.last_piece_count = self.board.red_left + self.board.white_left 
             self.change_turn()
         else:
             return False
@@ -65,6 +77,8 @@ class Game:
             pygame.draw.circle(self.win, BLUE, (col * SQUARE_SIZE + SQUARE_SIZE//2, row * SQUARE_SIZE + SQUARE_SIZE//2), 15)
 
     def change_turn(self):
+        self.moves_since_last_capture += 1 
+        
         self.valid_moves = {}
         if self.turn == RED:
             self.turn = PURPLE

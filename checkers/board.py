@@ -46,13 +46,6 @@ class Board:
                 else:
                     self.board[row].append(0)
         
-    def draw(self, win):
-        self.draw_squares(win)
-        for row in range(ROWS):
-            for col in range(COLS):
-                piece = self.board[row][col]
-                if piece != 0:
-                    piece.draw(win)
 
     def remove(self, pieces):
         for piece in pieces:
@@ -62,29 +55,36 @@ class Board:
                     self.red_left -= 1
                 else:
                     self.white_left -= 1
+                    
+    def draw(self, win):
+        self.draw_squares(win)
+        for row in range(ROWS):
+            for col in range(COLS):
+                piece = self.board[row][col]
+                if piece != 0:
+                    piece.draw(win)
     
     def winner(self):
-        if self.red_left <= 0:
-            return PURPLE
-        elif self.white_left <= 0:
-            return RED
-        
-        return None 
+        if self.red_left  == 0: return PURPLE
+        if self.white_left == 0: return RED
+        return None
+
     
     def get_valid_moves(self, piece):
         moves = {}
-        left = piece.col - 1
+        left  = piece.col - 1
         right = piece.col + 1
-        row = piece.row
+        row   = piece.row
 
         if piece.color == RED or piece.king:
-            moves.update(self._traverse_left(row -1, max(row-3, -1), -1, piece.color, left))
-            moves.update(self._traverse_right(row -1, max(row-3, -1), -1, piece.color, right))
+            moves.update(self._traverse_left (row-1, max(row-3, -1), -1, piece.color, left))
+            moves.update(self._traverse_right(row-1, max(row-3, -1), -1, piece.color, right))
         if piece.color == PURPLE or piece.king:
-            moves.update(self._traverse_left(row +1, min(row+3, ROWS), 1, piece.color, left))
-            moves.update(self._traverse_right(row +1, min(row+3, ROWS), 1, piece.color, right))
-    
-        return moves
+            moves.update(self._traverse_left (row+1, min(row+3, ROWS),  1, piece.color, left))
+            moves.update(self._traverse_right(row+1, min(row+3, ROWS),  1, piece.color, right))
+
+        capture_moves = {sq: skipped for sq, skipped in moves.items() if skipped}
+        return capture_moves if capture_moves else moves
 
     def evaluate(self):
         return self.white_left - self.red_left + (self.white_kings * 0.5 - self.red_kings * 0.5)
